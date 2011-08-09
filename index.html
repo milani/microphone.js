@@ -8,9 +8,9 @@
     var mic = new Microphone(function(){//this function is called when user allow us to access microphone.
         
         //sample handler
-        mic.onSamplesAvailable(function(data,channelCount){
-        
-        });
+        mic.onSamplesAvailable = function(data,channelCount){
+            console.log(data);
+        };
         
         //set sample rate
         mic.sampleRate = 44100;
@@ -30,7 +30,7 @@
         //stops streaming after 1 second
         setTimeout(function(){
             mic.stop();
-        },1000);
+        },2000);
     });
 </script>
 </body>

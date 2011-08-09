@@ -14,7 +14,7 @@ var mic = new Microphone(function(){//called when user allows access
     //when samples are available, this function is called
     mic.onSamplesAvailable = function(data){
         console.log(data);
-    });
+    };
     //starts streaming
     mic.start();
 
