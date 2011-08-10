@@ -14,7 +14,8 @@ package {
     import flash.events.SampleDataEvent;
     import flash.external.ExternalInterface;
     import flash.system.Security;
-    
+    import flash.system.Capabilities;
+
     public class microphone extends Sprite {
 
         private var mic:Microphone    = null;
@@ -27,13 +28,25 @@ package {
         private var id:String = null;
         
         public function microphone() {
-        
+
+            var flashPlayerVersion:String = Capabilities.version;
+            var osArray:Array = flashPlayerVersion.split(' ');
+            var versionArray:Array = osArray[1].split(',');
+            var majorVersion:Number = parseInt(versionArray[0]);
+            var majorRevision:Number = parseInt(versionArray[1])/10;
+
             var options:Object = this.loaderInfo.parameters;
-            
+                        
             debugging = options.debugging  || false;
             JSObject  = options.objectName || "Mic";
             mode      = options.mode       || RECORD;
             id        = options.id;
+            
+            if(majorVersion + majorRevision < 10.1){
+                ExternalInterface.call(JSObject + '.error', id , 3, 'Flash Player 10.1 or above is required');
+                ExternalInterface.call('console.log','Flash player does not support samplesAvailable event');
+                return;
+            }            
             
             Security.showSettings("2");
 
@@ -43,13 +56,12 @@ package {
             
                 mic.addEventListener(StatusEvent.STATUS,statusHandler);
                 mic.addEventListener(ActivityEvent.ACTIVITY,activityHandler);
-               // mic.codec = SoundCodec.SPEEX;
-               // mic.enableVAD = true;
+                mic.codec = SoundCodec.SPEEX;
+                mic.enableVAD = true;
                 mic.setSilenceLevel(1, 1000);
                 mic.setUseEchoSuppression(true); 
                 mic.setLoopBack(true);
-                mic.gain = 80;
-               // mic.rate = 8;
+                mic.gain = 50;
                 
            		ExternalInterface.addCallback("setMic", setMic);
     			ExternalInterface.addCallback("getMicrophoneList", getMicrophoneList);
@@ -63,13 +75,12 @@ package {
     			ExternalInterface.addCallback("stop", stop);
     			
             }else if(Microphone.isSupported === false){
-                error(1,"Microphone usage is not supported.");
-                log("Microphone usage is not supported.");
+                this.error(1,"Microphone usage is not supported.");
+                this.log("Microphone usage is not supported.");
             }else{
-                error(2,"No microphone detected.");
-                log("No microphone detected.");
+                this.error(2,"No microphone detected.");
+                this.log("No microphone detected.");
             }
-            
             ExternalInterface.call(JSObject + '.loaded',id);
         }
         
@@ -77,6 +88,7 @@ package {
             if(mode == RECORD){
             }else if(mode == STREAM){
                 log('started');
+
                 mic.addEventListener(SampleDataEvent.SAMPLE_DATA,streamHandler);
             }
         }
